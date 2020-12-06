@@ -57,3 +57,88 @@ def fixed_iter(phi, x_0, n=10**2):
         x = phi(x)
     return x
 
+def fx_pt_convergence_graph(n, num_iter):
+    '''
+    '''
+    beta = generate_beta(n)
+    adj_matrix = generate_graph(beta)
+    phi = get_phi(adj_matrix)
+    l2_er = np.empty(num_iter)
+    l_inf_er = np.empty(num_iter)
+    x = np.zeros(n) # Initial Guess
+    new_x = phi(x)
+    print(np.arange(num_iter)) #FIXME
+    
+    # Data Collection
+    for i in range(num_iter):
+        x = new_x
+        new_x = phi(x)
+        l2_er[i] = np.linalg.norm(x-new_x)
+        l_inf_er[i] = np.linalg.norm(x-new_x, ord=np.inf)
+
+    # Graphical
+    plt.clf()
+    plt.scatter(np.arange(num_iter), l2_er, label='L^2 Error')
+    plt.xlabel('Number of Iterations')
+    plt.ylabel('L^2 Error ||x_k-x_{k+1}||_2')
+    plt.title(f'Convergence to Fixed Point (L^2 Norm) n={n}')
+    plt.savefig('Fixed_Point_Convergence_L2.png')
+    plt.clf()
+    plt.scatter(np.arange(num_iter), l_inf_er, label='L^infinity Error')
+    plt.xlabel('Number of Iterations')
+    plt.ylabel('L^infinity Error ||x_k-x_{k+1}||_infinity')
+    plt.title(f'Convergence to Fixed Point (Inifinity Norm) n={n}')
+    plt.savefig('Fixed_Point_Convergence_L_infinity.png')
+
+def n_convergence_graph(n_max = 500, step = 5, tresh=0.001, executions=5):
+    '''
+    Creates convergence graphs based on the size of the network.
+    Args:
+        n_max (int): the maximum size of the network.
+        step (int): the starting size of the network and by how much it
+            increases for every point.
+        tresh (float): the treshold for convergence of fixed point iteration.
+            When ||x-phi(x)||_infty < tresh, the algorithm will stop for that
+            graph.
+        executions (int): How many executions should be carried out for each n.
+    '''
+    num_points = n_max//step
+    l2_er = np.empty(num_points)
+    l_inf_er = np.empty(num_points)
+    for k in range(num_points):
+        n = (k+1)*step
+        print(f'\nStarting n = {n}')
+        total_l2_er = 0
+        total_l_inf_er = 0
+        for i in range(executions):
+            beta = generate_beta(n)
+            adj_matrix = generate_graph(beta)
+            phi=get_phi(adj_matrix)
+            x = np.zeros(n)
+            new_x = phi(x)
+            while np.linalg.norm(x-new_x, ord=np.inf) > tresh:
+                x = new_x
+                new_x = phi(x)
+            total_l2_er += np.linalg.norm(new_x-beta)
+            total_l_inf_er += np.linalg.norm(new_x-beta, ord=np.inf)
+            print(f'Execution #{i+1} out of {executions} done')
+        l2_er[k] = total_l2_er/executions
+        l_inf_er[k] = total_l_inf_er/executions
+
+    # Graphical
+    plt.clf()
+    plt.scatter(step*(np.arange(num_points)+1), l2_er, label='L^2 Error')
+    plt.xlabel('Size of Network')
+    plt.ylabel('L^2 Error ||beta-hat-beta||_2')
+    plt.title('Convergence of Estimator (L^2 Norm)')
+    plt.savefig('Estimator_Convergence_L2.png')
+    plt.clf()
+    plt.scatter(step*(np.arange(num_points)+1), l_inf_er, label='L^infinity Error')
+    plt.xlabel('Size of Network')
+    plt.ylabel('L^infinity Error ||beta-hat-beta||_infinity')
+    plt.title('Convergence of Estimator (Infinity Norm)')
+    plt.savefig('Estimator_Convergence_L_inf.png')
+
+    return l2_er, l_inf_er
+
+
