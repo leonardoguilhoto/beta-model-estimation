@@ -44,7 +44,7 @@ def get_phi(adj_matrix):
                 if i != j:
                     sums += 1/(np.exp(x[i])+np.exp(-x[j]))
             phi_x[i] = np.log(deg_seq[i])-np.log(sums)
-        return phi_x #FIXME what if a node has degree 0?
+        return phi_x
     return phi
 
 def fixed_iter(phi, x_0, n=10**2):
@@ -59,6 +59,10 @@ def fixed_iter(phi, x_0, n=10**2):
 
 def fx_pt_convergence_graph(n, num_iter):
     '''
+    Creates convergence graphs for the fixed point iteration.
+    Args:
+        n (int): the size of the network to be created.
+        num_iter (int): how many iterations should be carried out.
     '''
     beta = generate_beta(n)
     adj_matrix = generate_graph(beta)
@@ -67,7 +71,6 @@ def fx_pt_convergence_graph(n, num_iter):
     l_inf_er = np.empty(num_iter)
     x = np.zeros(n) # Initial Guess
     new_x = phi(x)
-    print(np.arange(num_iter)) #FIXME
     
     # Data Collection
     for i in range(num_iter):
